@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شطر - Shatr Downloader</title>
+    <!-- Cairo Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- GSAP for Smooth Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #fcefe2;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(227, 30, 36, 0.45) 0%, transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(227, 30, 36, 0.35) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.8) 0%, transparent 60%);
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+
+        /* Compact Main Card (Like Sahab App Layout) */
+        .app-card {
+            width: 100%;
+            max-width: 440px;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 28px;
+            padding: 22px 20px;
+            box-shadow: 
+                0 20px 50px rgba(227, 30, 36, 0.15),
+                0 10px 20px rgba(0, 0, 0, 0.05),
+                inset 0 1px 2px rgba(255, 255, 255, 1);
+            position: relative;
+            transform: scale(0.95);
+            opacity: 0;
+        }
+
+        /* Header & Logo */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-box {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #e31e24, #b31217);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 900;
+            font-size: 20px;
+            box-shadow: 0 6px 15px rgba(227, 30, 36, 0.35);
+        }
+
+        .brand-name {
+            font-size: 22px;
+            font-weight: 900;
+            color: #8a0c10;
+            letter-spacing: -0.5px;
+        }
+
+        .status-dot-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(227, 30, 36, 0.15);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Top Format Switcher - Icons Only! */
+        .format-tabs {
+            display: flex;
+            background: rgba(235, 225, 225, 0.5);
+            padding: 4px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            gap: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .tab-btn {
+            flex: 1;
+            height: 40px;
+            border: none;
+            background: transparent;
+            border-radius: 12px;
+            color: #666;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tab-btn.active {
+            background: #ffffff;
+            color: #e31e24;
+            box-shadow: 0 4px 12px rgba(227, 30, 36, 0.15);
+            transform: translateY(-1px);
+        }
+
+        /* Glass Input Section */
+        .input-group {
+            position: relative;
+            margin-bottom: 14px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .glass-input {
+            width: 100%;
+            height: 48px;
+            padding: 0 14px 0 40px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1.5px solid rgba(227, 30, 36, 0.2);
+            border-radius: 14px;
+            font-size: 13px;
+            color: #333;
+            outline: none;
+            transition: all 0.3s ease;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .glass-input:focus {
+            border-color: #e31e24;
+            background: #ffffff;
+            box-shadow: 0 0 15px rgba(227, 30, 36, 0.2);
+        }
+
+        .error-x-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%) scale(0);
+            color: #e31e24;
+            font-size: 16px;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .error-x-icon.show {
+            transform: translateY(-50%) scale(1);
+        }
+
+        /* Separate Clear Button */
+        .btn-clear {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1.5px solid rgba(227, 30, 36, 0.2);
+            border-radius: 14px;
+            color: #777;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-clear:active {
+            transform: scale(0.92);
+            background: #fee2e2;
+            color: #e31e24;
+        }
+
+        /* Video Preview Card */
+        .preview-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            padding: 10px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            display: none;
+        }
+
+        .preview-thumb {
+            width: 70px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: #eee;
+        }
+
+        .preview-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .preview-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #222;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .preview-meta {
+            font-size: 11px;
+            color: #777;
+            margin-top: 2px;
+        }
+
+        /* Options Row */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .glass-select, .glass-input-sm {
+            width: 100%;
+            height: 38px;
+            padding: 0 10px;
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(227, 30, 36, 0.15);
+            border-radius: 10px;
+            font-size: 11px;
+            color: #444;
+            outline: none;
+            font-weight: 600;
+        }
+
+        /* Glass Download Button */
+        .btn-download {
+            width: 100%;
+            height: 48px;
+            background: linear-gradient(135deg, #e31e24 0%, #b31217 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 8px 20px rgba(227, 30, 36, 0.35);
+            transition: all 0.3s ease;
+        }
+
+        .btn-download:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 10px rgba(227, 30, 36, 0.2);
+        }
+
+        /* Progress Bar Section */
+        .progress-box {
+            margin-top: 14px;
+            display: none;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #555;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: rgba(227, 30, 36, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(227, 30, 36, 0.15);
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #e31e24, #ff5e62);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        /* Advanced Settings Collapsible */
+        .settings-toggle {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 11px;
+            color: #888;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .advanced-panel {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(227, 30, 36, 0.2);
+            display: none;
+        }
+
+        /* Footer Signature */
+        .developer-tag {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #a82025;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-card" id="appCard">
+        <!-- Header -->
+        <div class="app-header">
+            <div class="brand">
+                <div class="logo-box">ش</div>
+                <div class="brand-name">شطر</div>
+            </div>
+            <div class="status-dot-wrap">
+                <div class="status-dot"></div>
+            </div>
+        </div>
+
+        <!-- Format Switcher (Icons Only!) -->
+        <div class="format-tabs">
+            <button class="tab-btn active" id="tabVideo" title="فيديو"><i class="fa-solid fa-video"></i></button>
+            <button class="tab-btn" id="tabAudio" title="صوت MP3"><i class="fa-solid fa-music"></i></button>
+            <button class="tab-btn" id="tabPlaylist" title="قائمة تشغيل"><i class="fa-solid fa-list-check"></i></button>
+        </div>
+
+        <!-- Input Section -->
+        <div class="input-group">
+            <div class="input-wrapper">
+                <input type="text" class="glass-input" id="urlInput" placeholder="الصق الرابط هنا..." autocomplete="off">
+                <i class="fa-solid fa-xmark error-x-icon" id="errorX"></i>
+            </div>
+            <button class="btn-clear" id="btnClear" title="تفريغ"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+
+        <!-- Video Preview -->
+        <div class="preview-card" id="previewCard">
+            <img src="" class="preview-thumb" id="previewThumb" alt="thumbnail">
+            <div class="preview-info">
+                <div class="preview-title" id="previewTitle">جاري جلب العنوان...</div>
+                <div class="preview-meta" id="previewMeta">دقة عالية | بدون علامة مائية</div>
+            </div>
+        </div>
+
+        <!-- Options Grid -->
+        <div class="options-grid">
+            <select class="glass-select" id="qualitySelect">
+                <option value="best">أعلى جودة + صوت صافي</option>
+                <option value="1080p">1080p FHD</option>
+                <option value="720p">720p HD</option>
+            </select>
+            <input type="text" class="glass-input-sm" id="folderInput" value="Downloads/Shatr">
+        </div>
+
+        <!-- Action Button -->
+        <button class="btn-download" id="btnDownload">
+            <i class="fa-solid fa-arrow-down-long"></i>
+            <span>بدء التحميل</span>
+        </button>
+
+        <!-- Progress Box -->
+        <div class="progress-box" id="progressBox">
+            <div class="progress-header">
+                <span id="statusText">جاري الاتصال...</span>
+                <span id="percentText">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- Advanced Speed & Cookies Panel -->
+        <div class="settings-toggle" id="toggleSettings">
+            <i class="fa-solid fa-sliders"></i> إعدادات السرعة والكوكيز
+        </div>
+        <div class="advanced-panel" id="advancedPanel">
+            <div class="options-grid" style="margin-bottom:0;">
+                <select class="glass-select" id="speedSelect">
+                    <option value="unlimited">السرعة: قصوى</option>
+                    <option value="10M">تحديد السرعة: 10MB/s</option>
+                    <option value="5M">تحديد السرعة: 5MB/s</option>
+                </select>
+                <input type="text" class="glass-input-sm" id="cookiesInput" placeholder="مسار الكوكيز cookies.txt">
+            </div>
+        </div>
+
+        <!-- Developer Signature -->
+        <div class="developer-tag">طور من قبل Eyad</div>
+    </div>
+
+    <script>
+        // GSAP Animations on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            gsap.to("#appCard", { opacity: 1, scale: 1, duration: 0.8, ease: "back.out(1.4)" });
+        });
+
+        // Elements
+        const urlInput = document.getElementById('urlInput');
+        const errorX = document.getElementById('errorX');
+        const btnClear = document.getElementById('btnClear');
+        const previewCard = document.getElementById('previewCard');
+        const previewTitle = document.getElementById('previewTitle');
+        const previewThumb = document.getElementById('previewThumb');
+        const btnDownload = document.getElementById('btnDownload');
+        const progressBox = document.getElementById('progressBox');
+        const progressFill = document.getElementById('progressFill');
+        const percentText = document.getElementById('percentText');
+        const statusText = document.getElementById('statusText');
+
+        // Tabs
+        const tabs = [document.getElementById('tabVideo'), document.getElementById('tabAudio'), document.getElementById('tabPlaylist')];
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                gsap.fromTo(tab, { scale: 0.85 }, { scale: 1, duration: 0.3, ease: "back.out(2)" });
+            });
+        });
+
+        // Clear Button Functionality
+        btnClear.addEventListener('click', () => {
+            urlInput.value = '';
+            errorX.classList.remove('show');
+            previewCard.style.display = 'none';
+            progressBox.style.display = 'none';
+            gsap.fromTo(btnClear, { rotate: -30 }, { rotate: 0, duration: 0.3 });
+        });
+
+        // URL Validation on Typing
+        urlInput.addEventListener('input', (e) => {
+            const val = e.target.value.trim();
+            if (val.length > 5) {
+                if (val.includes('http://') || val.includes('https://')) {
+                    errorX.classList.remove('show');
+                    previewCard.style.display = 'flex';
+                    previewTitle.innerText = "فيديو من المصدر (جاهز للتحميل)";
+                    previewThumb.src = "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=150&q=80";
+                    gsap.fromTo(previewCard, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4 });
+                } else {
+                    errorX.classList.add('show');
+                    previewCard.style.display = 'none';
+                }
+            } else {
+                errorX.classList.remove('show');
+                previewCard.style.display = 'none';
+            }
+        });
+
+        // Download Action Simulation
+        btnDownload.addEventListener('click', () => {
+            const url = urlInput.value.trim();
+            if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
+                errorX.classList.add('show');
+                gsap.fromTo("#urlInput", { x: -8 }, { x: 8, duration: 0.08, repeat: 5, yoyo: true });
+                return;
+            }
+
+            progressBox.style.display = 'block';
+            gsap.fromTo(progressBox, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4 });
+
+            let currentPercent = 0;
+            const interval = setInterval(() => {
+                currentPercent += Math.floor(Math.random() * 15) + 5;
+                if (currentPercent >= 100) {
+                    currentPercent = 100;
+                    clearInterval(interval);
+                    statusText.innerText = "اكتمل التحميل بنجاح!";
+                    percentText.innerText = "100%";
+                    progressFill.style.width = "100%";
+                } else {
+                    statusText.innerText = "جاري التحميل والسحب...";
+                    percentText.innerText = currentPercent + "%";
+                    progressFill.style.width = currentPercent + "%";
+                }
+            }, 300);
+        });
+
+        // Collapsible Panel
+        document.getElementById('toggleSettings').addEventListener('click', () => {
+            const panel = document.getElementById('advancedPanel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        });
+    </script>
+</body>
+  </html>
